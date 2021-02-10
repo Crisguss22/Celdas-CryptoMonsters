@@ -1,0 +1,127 @@
+body {
+  margin-left: 30px;
+  background-image: url('./img/back.jpg');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  font-family: system-ui;
+}
+
+h1 {
+  color: white;
+}
+
+h2 {
+  color: white;
+}
+
+label {
+    display:block;
+    margin-bottom:10px;
+}
+input {
+    padding:10px;
+    width: 50%;
+    margin-bottom: 1em;
+}
+button {
+    padding: 1em 4em;
+    display:block;
+}
+
+img {
+  max-height: 200px;
+  margin-left: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+.monster-profile {
+  background-color: beige;
+  border: inset;
+  padding: 10px;
+  margin: 20px;  
+  max-height: 340px;
+}
+
+.monster-portrait {
+  border: 2px solid black;
+  border-radius: 5px;
+  width: 240px;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#my-monsters {
+  display: flex;
+}
+
+#all-monsters {
+  display: flex;
+}
+
+.ba0 {
+  background-image: url('./img/backgrounds/0.png')
+}
+
+.ba1 {
+  background-image: url('./img/backgrounds/1.png')
+}
+
+.ba2 {
+  background-image: url('./img/backgrounds/2.png')
+}
+
+.ba3 {
+  background-image: url('./img/backgrounds/3.png')
+}
+
+.ba4 {
+  background-image: url('./img/backgrounds/4.png')
+}
+
+.ba5 {
+  background-image: url('./img/backgrounds/5.png')
+}
+
+.ba6 {
+  background-image: url('./img/backgrounds/6.png')
+}
+
+.ba7 {
+  background-image: url('./img/backgrounds/7.png')
+}
+
+.ba8 {
+  background-image: url('./img/backgrounds/8.png')
+}
+
+.ba9 {
+  background-image: url('./img/backgrounds/9.png')
+}
+
+.ba10 {
+  background-image: url('./img/backgrounds/A.png')
+}
+
+.ba11 {
+  background-image: url('./img/backgrounds/B.png')
+}
+
+.ba12 {
+  background-image: url('./img/backgrounds/C.png')
+}
+
+.ba13 {
+  background-image: url('./img/backgrounds/D.png')
+}
+
+.ba14 {
+  background-image: url('./img/backgrounds/E.png')
+}
+
+.ba15 {
+  background-image: url('./img/backgrounds/F.png')
+}

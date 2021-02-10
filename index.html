@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>CryptoMonsters - Celdas</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="web3/dist/web3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="cryptomonsters_abi.js"></script>
+  </head>
+  <body>
+    <h1> Crypto-Monsters </h1>
+
+    <div id="txStatus"></div>
+    <h2> My Monsters </h2>
+    <button id="new-monster"> Create my Own Monster </button>    
+    <div id="my-monsters"></div>
+    <h2> All Monsters </h2>
+    <button id="monster-sellable-filter"> Filter Monsters: All/For Sale</button>
+    <div id="all-monsters"></div>
+
+    <script>
+      var cryptoMonsters;
+      var userAccount;
+      var oldUserAccount;
+      var newMonsterFee;
+      var onlyForSale = false;
+      var allMonstersRendered = {};
+
+      var names = [
+        "Duende",
+        "Gnomo",
+        "Goblin",
+        "Espectro",
+        "Criatura",
+        "Espanto",
+        "Ser",
+        "Aparición",
+        "Demonio",
+        "Monstruo",
+        "Reptil",
+        "Zombie",
+        "Orco",
+        "Troll",
+        "Gremlin",
+        "Trasgo"
+      ]
+
+      var surnames = [
+        "hediondo",
+        "de fuego",
+        "horrible",
+        "sucio",
+        "maléfico",
+        "espeluznante",
+        "artero",
+        "malvado",
+        "asqueroso",
+        "de hielo",
+        "de viento",
+        "de agua",
+        "gris",
+        "furioso",
+        "destripador",
+        "lunático"
+      ]
+
+      function startApp() {
+        var cryptoMonstersAddress = "0xfB24FE4F9D251E8a3e2E26600Bf522eebac478F7";
+        onlyForSale = false;
+        allMonstersRendered = {};
+        cryptoMonsters = new web3.eth.Contract(cryptoMonstersABI, cryptoMonstersAddress);
+        var accountInterval = setInterval(function() {
+          oldUserAccount = userAccount;
+          web3.eth.getAccounts(function(error, accounts) {
+            userAccount = accounts[0];
+            if (oldUserAccount != userAccount) {
+              renderMonsters(userAccount);
+            }
+          });
+        }, 10000);        
+        web3.eth.getAccounts(function(error, accounts) {
+          userAccount = accounts[0];
+          setCreationFee();
+          renderMonsters(userAccount);
+        });
+      }
+
+      function parseMonster(monster, id) {
+        var parsedMonster = {};
+        var hexDna = monster.dna.toString(16);
+        parsedMonster['id'] = id;
+        parsedMonster['dna'] = hexDna;
+        parsedMonster['full_name'] = monsterName(hexDna);
+        parsedMonster['image'] = monsterImage(hexDna);
+        parsedMonster['background'] = monsterBackground(hexDna);
+        parsedMonster['price'] = monsterPrice(monster.dna);
+        parsedMonster['sellable'] = monster.sellable;
+        return parsedMonster;
+      }
+
+      function monsterName(hexDna) {
+        var name_index = parseInt("0x" + hexDna[2]);
+        var surname_index = parseInt("0x" + hexDna[3]);
+        return names[name_index] + " " + surnames[surname_index];
+      }
+
+      function monsterImage(hexDna) {
+        return "monster_" + hexDna[0].toUpperCase();
+      }
+
+      function monsterBackground(hexDna) {
+        var backgorund_index = parseInt("0x" + hexDna[1]);
+        return "ba" + backgorund_index;
+      }
+
+      function monsterPrice(dna) {
+        var price = (parseInt(dna, 10) + 10 )* 0.0001
+        return price;
+      }
+
+      function displayAllMonsters(result) {
+        parsedResult = result.map(elem=> parseInt(elem, 10))
+        allMonsterCount = parsedResult[0];
+        ownMonsterIds = parsedResult.slice(1,parsedResult.length);
+        notOwnMonsterIds = excludedIds(allMonsterCount, ownMonsterIds);
+        displayOwnMonsters(ownMonsterIds);
+        displayNotOwnMonsters(notOwnMonsterIds);
+      }
+
+      function excludedIds(full_size, own_ids) {
+        other_ids = []
+        for (var i = 0; i < full_size; i++) {
+          if (!own_ids.includes(i)) {
+            other_ids.push(i)
+          }
+        }
+        return other_ids;
+      }
+
+      function displayOwnMonsters(ids) {
+        $("#my-monsters").empty();
+        for (id of ids) {
+          addOwnMonster(id);
+        }
+      }
+
+      function displayNotOwnMonsters(ids) {
+        $("#all-monsters").empty();
+        for (id of ids) {
+          addNotOwnMonster(id);
+        }
+      }
+
+      function appendOwnMonster(base_monster) {
+        allMonstersRendered[monster.dna] = monster;
+        $("#my-monsters").append(`<div id="monster-${monster.dna}" class="monster-profile">
+          <div class="monster-portrait ${monster.background}">
+            <img src="img/monsters/${monster.image}.png"/>
+          </div>
+          <ul>
+            <li> Name: ${monster.full_name}</li>
+            <li> Price: ${monster.price} ether</li>
+            <li id="sellable-${monster.dna}"> For Sale: ${monster.sellable}</li>
+          </ul>
+          <button value="${monster.dna}" onClick="switchSellableCondition(this.value)"> Change Selling Status</button>
+        </div>`);
+      }
+
+      function appendNotOwnMonster(base_monster) {
+        allMonstersRendered[monster.dna] = monster;
+        $("#all-monsters").append(`<div id="monster-${monster.dna}" class="monster-profile">
+          <div class="monster-portrait ${monster.background}">
+            <img src="img/monsters/${monster.image}.png"/>
+          </div>
+          <ul>
+            <li> Name: ${monster.full_name}</li>
+            <li> Price: ${monster.price} ether</li>
+          </ul>
+          <button id="button-${monster.dna}" value="${monster.dna}" onClick="buyMonster(this.value)"> BUY </button> 
+        </div>`);
+        if (!monster.sellable) {
+          if (onlyForSale) {
+            $("#monster-" + monster.dna).toggleClass('hidden');
+          } else {
+            $("#button-" + monster.dna).toggleClass('hidden');
+          }
+        }
+      }
+
+      function createNewMonster() {
+        $("#txStatus").text("Creating new monster on the blockchain. This may take a while...");
+        return cryptoMonsters.methods.createNewMonster()
+        .send({ from: userAccount, value: web3.utils.toWei("0.01", "ether"), gas: 3000000 })
+        .on("receipt", function(receipt) {
+          $("#txStatus").text("Successfully created!");
+          renderMonsters(userAccount);
+        })
+        .on("error", function(error) {
+          $("#txStatus").text(error);
+        });
+      }
+
+      function renderMonsters(userAccount) {
+        getMonstersByOwner(userAccount).then(displayAllMonsters);
+      }
+
+      function addOwnMonster(id) {
+        cryptoMonsters.methods.monsters(parseInt(id, 10)).call(function(err, res){
+          monster = parseMonster(res, id);
+          appendOwnMonster(monster);
+        });
+      }
+
+      function addNotOwnMonster(id) {
+        cryptoMonsters.methods.monsters(parseInt(id, 10)).call(function(err, res){
+          monster = parseMonster(res, id);
+          appendNotOwnMonster(monster);
+        });
+      }
+
+      function getMonsterDetails(id) {
+        return cryptoMonsters.methods.monsters(parseInt(id, 10)).call()
+      }
+
+      function monsterToOwner(id) {
+        return cryptoMonsters.methods.monsterToOwner(parseInt(id, 10)).call()
+      }
+
+      function getMonstersByOwner(owner) {
+        return cryptoMonsters.methods.getMonstersByOwner(owner).call()
+      }
+
+      function setCreationFee() {
+        cryptoMonsters.methods.getMonsterCreationFee().call(function(err, res){
+          newMonsterFee = res;
+        });
+      }
+
+      function switchSellableCondition(dna) {
+        monster = allMonstersRendered[dna];
+        newCondition = !monster.sellable;
+        cryptoMonsters.methods.changeSellable(monster.id, newCondition)        
+        .send({ from: userAccount, gas: 3000000 })
+        .on("receipt", function(receipt) {
+          renderMonsters(userAccount);
+        })
+        .on("error", function(error) {
+          $("#txStatus").text(error);
+        });
+      }
+
+      function buyMonster(dna) {
+        monster = allMonstersRendered[dna];
+        cryptoMonsters.methods.buyMonster(monster.id)        
+        .send({ from: userAccount, value: web3.utils.toWei(monster.price.toString(), "ether"), gas: 30000000 })
+        .on("receipt", function(receipt) {
+          renderMonsters(userAccount);
+        })
+        .on("error", function(error) {
+          $("#txStatus").text(error);
+        });
+      }
+
+      $("#new-monster").click(createNewMonster);
+
+      $("#monster-sellable-filter").click(function() {
+          onlyForSale = !onlyForSale;          
+          renderMonsters(userAccount);
+        });
+
+      // var examples = [
+      //   {"dna": 45614, "sellable": false},
+      //   {"dna": 12478, "sellable": false},
+      //   {"dna": 22428, "sellable": true},
+      //   {"dna": 15471, "sellable": false},
+      //   {"dna": 32147, "sellable": true}
+      // ]
+
+      // function displayOwnMonsterExamples(ids) {
+      //   $("#my-monsters").empty();
+      //   for (id of ids) {
+      //     appendOwnMonster(examples[id]);
+      //   }
+      // }
+
+      // function displayNotOwnMonsterExamples(ids) {
+      //   $("#all-monsters").empty();
+      //   for (id of ids) {
+      //     appendNotOwnMonster(examples[id]);
+      //   }
+      // }
+
+      window.addEventListener('load', function() {
+        if (typeof web3 !== 'undefined') {
+          web3 = new Web3(web3.currentProvider);
+        } else {
+          web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        }
+        // displayOwnMonsterExamples([3,4])
+        // displayNotOwnMonsterExamples([0,1,2]);
+        startApp()
+      })
+    </script>
+  </body>
+</html>
+
