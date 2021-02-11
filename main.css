@@ -15,6 +15,10 @@ h2 {
   color: white;
 }
 
+h3 {
+  color: white;
+}
+
 label {
     display:block;
     margin-bottom:10px;
@@ -60,6 +64,14 @@ img {
 
 #all-monsters {
   display: flex;
+}
+
+#new-monster {
+  margin-left: 20px;
+}
+
+#monster-sellable-filter {
+  margin-left: 20px;
 }
 
 .ba0 {

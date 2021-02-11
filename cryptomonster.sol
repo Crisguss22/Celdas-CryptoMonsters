@@ -15,7 +15,7 @@ contract MonsterFactory is Ownable, ERC721 {
   uint dnaModulus = 16 ** dnaHexDigits;
   Monster[] public monsters;
   mapping (uint => address) public monsterToOwner;
-  mapping (address => uint) ownerMonsterCount;
+  mapping (address => uint) public ownerMonsterCount;
   mapping (uint => address) monsterApprovals;
   uint monsterCreationFee = 0.01 ether;
 
@@ -104,7 +104,7 @@ contract MonsterFactory is Ownable, ERC721 {
 
   function _transfer(address _from, address _to, uint256 _tokenId) private {
     ownerMonsterCount[_to] = ownerMonsterCount[_to].add(1);
-    ownerMonsterCount[msg.sender] = ownerMonsterCount[msg.sender].sub(1);
+    ownerMonsterCount[_from] = ownerMonsterCount[_from].sub(1);
     monsterToOwner[_tokenId] = _to;
     Transfer(_from, _to, _tokenId);
   }

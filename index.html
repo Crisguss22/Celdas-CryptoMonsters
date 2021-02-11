@@ -13,7 +13,9 @@
 
     <div id="txStatus"></div>
     <h2> My Monsters </h2>
-    <button id="new-monster"> Create my Own Monster </button>    
+    <h3 id="current-account"></h3>
+
+    <button id="new-monster"> Create my Own Monster </button>
     <div id="my-monsters"></div>
     <h2> All Monsters </h2>
     <button id="monster-sellable-filter"> Filter Monsters: All/For Sale</button>
@@ -26,6 +28,7 @@
       var newMonsterFee;
       var onlyForSale = false;
       var allMonstersRendered = {};
+      var accountIndex = 0;
 
       var names = [
         "Duende",
@@ -66,21 +69,23 @@
       ]
 
       function startApp() {
-        var cryptoMonstersAddress = "0xfB24FE4F9D251E8a3e2E26600Bf522eebac478F7";
+        var cryptoMonstersAddress = "0x70a156323D766F28E11b20741138D932704A70Db";
         onlyForSale = false;
         allMonstersRendered = {};
         cryptoMonsters = new web3.eth.Contract(cryptoMonstersABI, cryptoMonstersAddress);
         var accountInterval = setInterval(function() {
           oldUserAccount = userAccount;
-          web3.eth.getAccounts(function(error, accounts) {
-            userAccount = accounts[0];
+          web3.eth.getAccounts(function(accounts) {            
+            userAccount = accounts[accountIndex];
+            $("#current-account").text("Current Account: " + userAccount);
             if (oldUserAccount != userAccount) {
               renderMonsters(userAccount);
             }
           });
         }, 10000);        
         web3.eth.getAccounts(function(error, accounts) {
-          userAccount = accounts[0];
+          userAccount = accounts[accountIndex];
+          $("#current-account").text("Current Account: " + userAccount);
           setCreationFee();
           renderMonsters(userAccount);
         });
